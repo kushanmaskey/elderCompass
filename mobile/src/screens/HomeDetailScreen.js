@@ -206,14 +206,15 @@ export default function HomeDetailScreen({ route, navigation }) {
           <Row label="Continuing Care (CCRC)"  value={home.is_ccrc ? 'Yes' : null} />
         </Card>
 
-        {/* Location */}
-        <Card title="Location">
-          <View style={s.mapBox}>
-            <Text style={s.mapLine}>{home.address}</Text>
-            <Text style={s.mapLine}>{home.city}, {home.state} {home.zipcode}</Text>
-            <TouchableOpacity
-              onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}
-            >
+        {/* Address */}
+        <Card title="Address">
+          <Row label="Street" value={home.address} />
+          <Row label="City"   value={home.city} />
+          <Row label="State"  value={home.state} />
+          <Row label="ZIP"    value={home.zipcode} />
+          <View style={s.row}>
+            <Text style={s.rowLabel}>Google Maps</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}>
               <Text style={s.mapsLink}>Open in Google Maps ↗</Text>
             </TouchableOpacity>
           </View>

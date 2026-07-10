@@ -170,15 +170,19 @@ export default function HomeDetail() {
           <Row label="Continuing Care (CCRC)" value={home.is_ccrc ? 'Yes' : null} />
         </Card>
 
-        {/* ── Location ── */}
-        <Card title="Location">
-          <div className="map-box">
-            <p>{home.address}</p>
-            <p>{home.city}, {home.state} {home.zipcode}</p>
+        {/* ── Address ── */}
+        <Card title="Address">
+          <Row label="Street"  value={home.address} />
+          <Row label="City"    value={home.city} />
+          <Row label="State"   value={home.state} />
+          <Row label="ZIP"     value={home.zipcode} />
+          <div className="detail-row">
+            <span className="detail-label">Google Maps</span>
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`}
               target="_blank" rel="noopener noreferrer"
               className="maps-link"
+              style={{ margin: 0 }}
             >
               Open in Google Maps ↗
             </a>
