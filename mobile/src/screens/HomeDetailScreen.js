@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
+  View, Text, ScrollView, TouchableOpacity, Modal,
   StyleSheet, ActivityIndicator, Linking, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,9 +17,18 @@ const SLIDES = [
 
 function ImageCarousel() {
   const [current, setCurrent] = useState(0);
+  const [lightbox, setLightbox] = useState(null);
+  const scrollRef = useRef(null);
+
+  function goTo(idx) {
+    scrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: true });
+    setCurrent(idx);
+  }
+
   return (
     <View style={s.carousel}>
       <ScrollView
+        ref={scrollRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -28,18 +37,50 @@ function ImageCarousel() {
         }
       >
         {SLIDES.map((slide, i) => (
-          <View key={i} style={[s.slide, { backgroundColor: slide.colors[1], width: SCREEN_WIDTH }]}>
+          <TouchableOpacity
+            key={i}
+            activeOpacity={0.9}
+            style={[s.slide, { backgroundColor: slide.colors[1], width: SCREEN_WIDTH }]}
+            onPress={() => setLightbox(slide)}
+          >
             <Text style={s.slideIcon}>{slide.icon}</Text>
             <Text style={s.slideLabel}>{slide.label}</Text>
-            <Text style={s.slideSubLabel}>Photos Coming Soon</Text>
-          </View>
+            <Text style={s.slideSubLabel}>Tap to expand</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {current > 0 && (
+        <TouchableOpacity style={[s.arrowBtn, s.arrowLeft]} onPress={() => goTo(current - 1)}>
+          <Text style={s.arrowTxt}>‹</Text>
+        </TouchableOpacity>
+      )}
+      {current < SLIDES.length - 1 && (
+        <TouchableOpacity style={[s.arrowBtn, s.arrowRight]} onPress={() => goTo(current + 1)}>
+          <Text style={s.arrowTxt}>›</Text>
+        </TouchableOpacity>
+      )}
+
       <View style={s.dots}>
         {SLIDES.map((_, i) => (
           <View key={i} style={[s.dot, i === current && s.dotActive]} />
         ))}
       </View>
+
+      <Modal visible={!!lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(null)}>
+        <View style={s.lightboxOverlay}>
+          <TouchableOpacity style={s.lightboxClose} onPress={() => setLightbox(null)}>
+            <Text style={s.lightboxCloseTxt}>✕</Text>
+          </TouchableOpacity>
+          {lightbox && (
+            <View style={[s.lightboxSlide, { backgroundColor: lightbox.colors[1] }]}>
+              <Text style={s.lightboxIcon}>{lightbox.icon}</Text>
+              <Text style={s.lightboxLabel}>{lightbox.label}</Text>
+              <Text style={s.lightboxSub}>Photos Coming Soon</Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -243,9 +284,20 @@ const s = StyleSheet.create({
   slideIcon: { fontSize: 48 },
   slideLabel: { fontSize: 17, fontWeight: '800', color: '#fff' },
   slideSubLabel: { fontSize: 11, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: 1 },
+  arrowBtn: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  arrowLeft: { left: 12 },
+  arrowRight: { right: 12 },
+  arrowTxt: { color: '#fff', fontSize: 28, fontWeight: '300', lineHeight: 32 },
   dots: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.4)' },
   dotActive: { backgroundColor: '#fff' },
+  lightboxOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.88)', alignItems: 'center', justifyContent: 'center' },
+  lightboxClose: { position: 'absolute', top: 50, right: 24, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  lightboxCloseTxt: { color: '#fff', fontSize: 18 },
+  lightboxSlide: { width: '88%', height: '60%', borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  lightboxIcon: { fontSize: 88 },
+  lightboxLabel: { fontSize: 26, fontWeight: '800', color: '#fff' },
+  lightboxSub: { fontSize: 13, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1.5 },
 
   identity: { padding: 20, paddingBottom: 4 },
   back: { color: '#2e7d5e', fontSize: 14, fontWeight: '600', marginBottom: 14 },

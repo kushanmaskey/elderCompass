@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getHomeById } from '../api/homes';
 import './HomeDetail.css';
@@ -11,29 +11,54 @@ const SLIDES = [
 
 function ImageCarousel() {
   const [current, setCurrent] = useState(0);
+  const [lightbox, setLightbox] = useState(null);
+  const trackRef = useRef(null);
+
+  function goTo(idx) {
+    setCurrent(idx);
+    trackRef.current.style.transition = 'transform 0.4s ease';
+    trackRef.current.style.transform = `translateX(-${idx * 100}%)`;
+  }
+
   return (
-    <div className="carousel">
-      <div className="carousel-track" style={{ transform: `translateX(-${current * 100}%)` }}>
-        {SLIDES.map((slide, i) => (
-          <div key={i} className="carousel-slide" style={{ background: slide.bg }}>
-            <div className="carousel-icon">{slide.icon}</div>
-            <div className="carousel-slide-label">{slide.label}</div>
-            <div className="carousel-coming-soon">Photos Coming Soon</div>
+    <>
+      <div className="carousel">
+        <div className="carousel-track" ref={trackRef}>
+          {SLIDES.map((slide, i) => (
+            <div
+              key={i}
+              className="carousel-slide"
+              style={{ background: slide.bg, cursor: 'zoom-in' }}
+              onClick={() => setLightbox(slide)}
+            >
+              <div className="carousel-icon">{slide.icon}</div>
+              <div className="carousel-slide-label">{slide.label}</div>
+              <div className="carousel-coming-soon">Photos Coming Soon · Click to expand</div>
+            </div>
+          ))}
+        </div>
+
+        <button className="carousel-btn carousel-prev" onClick={() => goTo(Math.max(0, current - 1))} disabled={current === 0}>‹</button>
+        <button className="carousel-btn carousel-next" onClick={() => goTo(Math.min(SLIDES.length - 1, current + 1))} disabled={current === SLIDES.length - 1}>›</button>
+
+        <div className="carousel-dots">
+          {SLIDES.map((_, i) => (
+            <button key={i} className={`carousel-dot${i === current ? ' active' : ''}`} onClick={() => goTo(i)} />
+          ))}
+        </div>
+      </div>
+
+      {lightbox && (
+        <div className="lightbox" onClick={() => setLightbox(null)}>
+          <button className="lightbox-close" onClick={() => setLightbox(null)}>✕</button>
+          <div className="lightbox-slide" style={{ background: lightbox.bg }} onClick={(e) => e.stopPropagation()}>
+            <div className="lightbox-icon">{lightbox.icon}</div>
+            <div className="lightbox-label">{lightbox.label}</div>
+            <div className="lightbox-sub">Photos Coming Soon</div>
           </div>
-        ))}
-      </div>
-      {current > 0 && (
-        <button className="carousel-btn carousel-prev" onClick={() => setCurrent((c) => c - 1)}>‹</button>
+        </div>
       )}
-      {current < SLIDES.length - 1 && (
-        <button className="carousel-btn carousel-next" onClick={() => setCurrent((c) => c + 1)}>›</button>
-      )}
-      <div className="carousel-dots">
-        {SLIDES.map((_, i) => (
-          <button key={i} className={`carousel-dot${i === current ? ' active' : ''}`} onClick={() => setCurrent(i)} />
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
 
