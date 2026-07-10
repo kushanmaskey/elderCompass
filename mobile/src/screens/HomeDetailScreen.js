@@ -8,12 +8,12 @@ import axios from 'axios';
 
 const API_BASE = 'http://10.0.2.2:3001/api';
 
-function PhotoPlaceholder({ name }) {
-  const initials = name?.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+function PhotoPlaceholder() {
   return (
     <View style={s.photo}>
-      <View style={s.photoCircle}><Text style={s.photoInitials}>{initials}</Text></View>
-      <Text style={s.photoLabel}>Photo coming soon</Text>
+      <Text style={s.photoIcon}>🏠</Text>
+      <Text style={s.photoTitle}>COMING SOON</Text>
+      <Text style={s.photoLabel}>Photos will be available soon</Text>
     </View>
   );
 }
@@ -93,7 +93,7 @@ export default function HomeDetailScreen({ route, navigation }) {
       <ScrollView contentContainerStyle={s.container}>
 
         {/* Photo */}
-        <PhotoPlaceholder name={home.name} />
+        <PhotoPlaceholder />
 
         {/* Identity */}
         <View style={s.identity}>
@@ -212,10 +212,10 @@ const s = StyleSheet.create({
   backBtn: { backgroundColor: '#2e7d5e', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, marginTop: 12 },
   backBtnText: { color: '#fff', fontWeight: '700' },
 
-  photo: { width: '100%', height: 220, backgroundColor: '#2e7d5e', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  photoCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
-  photoInitials: { fontSize: 26, fontWeight: '800', color: '#fff' },
-  photoLabel: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
+  photo: { width: '100%', height: 220, backgroundColor: '#d1d5db', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  photoIcon: { fontSize: 52 },
+  photoTitle: { fontSize: 20, fontWeight: '800', color: '#374151', letterSpacing: 1 },
+  photoLabel: { fontSize: 12, color: '#6b7280' },
 
   identity: { padding: 20, paddingBottom: 4 },
   back: { color: '#2e7d5e', fontSize: 14, fontWeight: '600', marginBottom: 14 },

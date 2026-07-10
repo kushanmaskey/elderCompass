@@ -38,29 +38,27 @@
 .photo-placeholder {
   width: 100%;
   height: 260px;
-  background: linear-gradient(135deg, #2e7d5e 0%, #1a5c45 100%);
+  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
 }
-.photo-initials {
-  width: 80px;
-  height: 80px;
-  background: rgba(255,255,255,0.2);
-  border: 2px solid rgba(255,255,255,0.4);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
+.photo-coming-soon-icon {
+  font-size: 52px;
+  filter: grayscale(0.3);
+}
+.photo-coming-soon-title {
+  font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: #374151;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 .photo-label {
   font-size: 13px;
-  color: rgba(255,255,255,0.6);
+  color: #6b7280;
 }
 
 /* ── Identity ── */
