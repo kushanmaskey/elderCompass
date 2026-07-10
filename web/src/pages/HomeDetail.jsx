@@ -3,17 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getHomeById } from '../api/homes';
 import './HomeDetail.css';
 
-function PhotoPlaceholder({ name }) {
-  const initials = name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+function PhotoPlaceholder() {
   return (
     <div className="photo-placeholder">
-      <div className="photo-initials">{initials}</div>
-      <div className="photo-label">Photo coming soon</div>
+      <div className="photo-coming-soon-icon">🏠</div>
+      <div className="photo-coming-soon-title">Coming Soon</div>
+      <div className="photo-label">Photos will be available soon</div>
     </div>
   );
 }
@@ -87,7 +82,7 @@ export default function HomeDetail() {
     <div className="detail-page">
 
       {/* ── Photo ── */}
-      <PhotoPlaceholder name={home.name} />
+      <PhotoPlaceholder />
 
       {/* ── Name & badges ── */}
       <div className="detail-identity">
