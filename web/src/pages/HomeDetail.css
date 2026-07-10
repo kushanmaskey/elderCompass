@@ -263,6 +263,8 @@
 }
 .contact-btn:hover { opacity: 0.85; }
 .web-btn { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.maps-link { font-size: 12px; color: #2e7d5e; text-decoration: none; margin-top: 8px; display: inline-block; }
+.maps-link:hover { text-decoration: underline; }
 
 /* ── Lightbox ── */
 .lightbox {

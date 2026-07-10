@@ -178,9 +178,9 @@ export default function HomeDetail() {
             <a
               href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`}
               target="_blank" rel="noopener noreferrer"
-              className="contact-btn web-btn"
+              className="maps-link"
             >
-              Open in Google Maps
+              Open in Google Maps ↗
             </a>
           </div>
         </Card>

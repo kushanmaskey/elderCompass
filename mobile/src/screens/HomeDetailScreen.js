@@ -212,10 +212,9 @@ export default function HomeDetailScreen({ route, navigation }) {
             <Text style={s.mapLine}>{home.address}</Text>
             <Text style={s.mapLine}>{home.city}, {home.state} {home.zipcode}</Text>
             <TouchableOpacity
-              style={[s.contactBtn, s.webBtn, { marginTop: 14 }]}
               onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}
             >
-              <Text style={s.webTxt}>Open in Google Maps</Text>
+              <Text style={s.mapsLink}>Open in Google Maps ↗</Text>
             </TouchableOpacity>
           </View>
         </Card>
@@ -336,7 +335,5 @@ const s = StyleSheet.create({
 
   mapBox: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, alignItems: 'center' },
   mapLine: { fontSize: 13, color: '#374151', marginBottom: 2 },
-  contactBtn: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
-  webBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
-  webTxt: { color: '#1d4ed8', fontWeight: '600', fontSize: 14 },
+  mapsLink: { fontSize: 12, color: '#2e7d5e', marginTop: 8 },
 });
