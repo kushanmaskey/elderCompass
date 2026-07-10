@@ -8,11 +8,19 @@ import axios from 'axios';
 
 const API_BASE = 'http://10.0.2.2:3001/api';
 
-function num(v) { return v != null ? parseFloat(v) : null; }
+function PhotoPlaceholder({ name }) {
+  const initials = name?.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+  return (
+    <View style={s.photo}>
+      <View style={s.photoCircle}><Text style={s.photoInitials}>{initials}</Text></View>
+      <Text style={s.photoLabel}>Photo coming soon</Text>
+    </View>
+  );
+}
 
 function Stars({ label, rating }) {
   if (!rating) return null;
-  const val = num(rating);
+  const val = parseFloat(rating);
   return (
     <View style={s.starRow}>
       <Text style={s.starLabel}>{label}</Text>
@@ -36,8 +44,17 @@ function Row({ label, value, highlight }) {
   );
 }
 
-function hrs(v) { return v != null ? `${num(v).toFixed(2)} hrs/resident/day` : null; }
-function pct(v) { return v != null ? `${num(v).toFixed(1)}%` : null; }
+function Card({ title, children }) {
+  return (
+    <View style={s.card}>
+      {title && <Text style={s.cardTitle}>{title}</Text>}
+      {children}
+    </View>
+  );
+}
+
+function hrs(v) { return v != null ? `${parseFloat(v).toFixed(2)} hrs/res/day` : null; }
+function pct(v) { return v != null ? `${parseFloat(v).toFixed(1)}%` : null; }
 
 export default function HomeDetailScreen({ route, navigation }) {
   const { id } = route.params;
@@ -75,10 +92,13 @@ export default function HomeDetailScreen({ route, navigation }) {
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.container}>
 
-        {/* Header */}
-        <View style={s.header}>
+        {/* Photo */}
+        <PhotoPlaceholder name={home.name} />
+
+        {/* Identity */}
+        <View style={s.identity}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={s.back}>← Back</Text>
+            <Text style={s.back}>← Back to results</Text>
           </TouchableOpacity>
           <View style={s.badges}>
             <View style={s.badge}><Text style={s.badgeText}>{home.source === 'cms' ? 'MEDICARE CERTIFIED' : 'SENIOR CARE'}</Text></View>
@@ -86,87 +106,97 @@ export default function HomeDetailScreen({ route, navigation }) {
             {hasAbuse && <View style={[s.badge, s.badgeRed]}><Text style={s.badgeText}>⚠ ABUSE CONCERN</Text></View>}
           </View>
           <Text style={s.name}>{home.name}</Text>
-          <Text style={s.addr}>{home.address}, {home.city}, {home.state} {home.zipcode}</Text>
-          <Stars label="Overall Rating" rating={home.rating} />
         </View>
 
-        {/* Ratings */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Ratings Breakdown</Text>
-          <Stars label="Overall Rating"      rating={home.rating} />
-          <Stars label="Health Inspection"   rating={home.health_inspection_rating} />
-          <Stars label="Staffing"            rating={home.staffing_rating} />
-          <Stars label="Quality Measures"    rating={home.qm_rating} />
-          <Stars label="Long-Stay Quality"   rating={home.longstay_qm_rating} />
-          <Stars label="Short-Stay Quality"  rating={home.shortstay_qm_rating} />
-        </View>
-
-        {/* Staffing */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Staffing  <Text style={s.cardSub}>(hrs/resident/day)</Text></Text>
-          <Row label="Total Nurse Hours"        value={hrs(home.total_nurse_hours_per_resident)} />
-          <Row label="Registered Nurse (RN)"    value={hrs(home.rn_hours_per_resident)} />
-          <Row label="Licensed Practical (LPN)" value={hrs(home.lpn_hours_per_resident)} />
-          <Row label="Nurse Aide"               value={hrs(home.nurse_aide_hours_per_resident)} />
-          <Row label="Weekend RN Hours"         value={hrs(home.weekend_nurse_hours_per_resident)} />
-          <View style={s.divider} />
-          <Row label="Nursing Turnover"  value={pct(home.total_nursing_staff_turnover)} highlight={num(home.total_nursing_staff_turnover) > 50} />
-          <Row label="RN Turnover"       value={pct(home.rn_turnover)} highlight={num(home.rn_turnover) > 50} />
-        </View>
-
-        {/* Inspections */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Inspections &amp; Penalties</Text>
-          <Row label="Last Inspection"    value={home.last_inspection_date ? new Date(home.last_inspection_date).toLocaleDateString() : null} />
-          <Row label="Health Deficiencies" value={home.health_deficiencies != null ? String(home.health_deficiencies) : null} highlight={home.health_deficiencies > 5} />
-          <Row label="Total Fines"        value={home.total_fines === 0 ? 'None' : home.total_fines > 0 ? `${home.total_fines}` : null} />
-          <Row label="Fines Amount"       value={home.total_fines_amount > 0 ? `$${parseFloat(home.total_fines_amount).toLocaleString()}` : null} />
-          <Row label="Total Penalties"    value={home.total_penalties === 0 ? 'None' : home.total_penalties != null ? String(home.total_penalties) : null} highlight={home.total_penalties > 0} />
-          {hasSpecialFocus ? <Row label="Special Focus" value={home.special_focus_status} highlight /> : null}
-        </View>
+        {/* About */}
+        <Card title="About">
+          {home.description ? <Text style={s.aboutText}>{home.description}</Text> : null}
+          <Row label="Address" value={`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`} />
+          {home.phone ? (
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${home.phone}`)} style={s.row}>
+              <Text style={s.rowLabel}>Phone</Text>
+              <Text style={[s.rowValue, s.link]}>{home.phone}</Text>
+            </TouchableOpacity>
+          ) : null}
+          <Row label="Email"   value={home.email || null} />
+          <Row label="Fax"     value={home.fax || null} />
+          {home.website ? (
+            <TouchableOpacity onPress={() => Linking.openURL(home.website)} style={s.row}>
+              <Text style={s.rowLabel}>Website</Text>
+              <Text style={[s.rowValue, s.link]}>Visit Website</Text>
+            </TouchableOpacity>
+          ) : null}
+        </Card>
 
         {/* Facility Profile */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Facility Profile</Text>
-          <Row label="Ownership"            value={home.ownership_type} />
-          <Row label="Certified Beds"       value={home.capacity != null ? String(home.capacity) : null} />
-          <Row label="Avg Daily Residents"  value={home.avg_daily_residents != null ? Math.round(num(home.avg_daily_residents)).toString() : null} />
-          <Row label="CMS Cert #"           value={home.cms_ccn} />
-          <Row label="Certified Since"      value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
+        <Card title="Facility Profile">
+          <Row label="Ownership"               value={home.ownership_type} />
+          <Row label="Certified Beds"          value={home.capacity != null ? String(home.capacity) : null} />
+          <Row label="Avg Daily Residents"     value={home.avg_daily_residents != null ? String(Math.round(parseFloat(home.avg_daily_residents))) : null} />
+          <Row label="CMS Cert #"              value={home.cms_ccn} />
+          <Row label="Certified Since"         value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
           <Row label="Resident/Family Council" value={home.resident_family_council} />
-          <Row label="Continuing Care (CCRC)" value={home.is_ccrc ? 'Yes' : null} />
-        </View>
-
-        {/* Contact */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Contact</Text>
-          {home.phone ? (
-            <TouchableOpacity style={[s.btn, s.phoneBtn]} onPress={() => Linking.openURL(`tel:${home.phone}`)}>
-              <Text style={s.phoneTxt}>📞 {home.phone}</Text>
-            </TouchableOpacity>
-          ) : null}
-          {home.website ? (
-            <TouchableOpacity style={[s.btn, s.webBtn]} onPress={() => Linking.openURL(home.website)}>
-              <Text style={s.webTxt}>🌐 Visit Website</Text>
-            </TouchableOpacity>
-          ) : null}
-          {!home.phone && !home.website && <Text style={s.noContact}>No contact info available.</Text>}
-        </View>
+          <Row label="Continuing Care (CCRC)"  value={home.is_ccrc ? 'Yes' : null} />
+        </Card>
 
         {/* Location */}
-        <View style={s.card}>
-          <Text style={s.cardTitle}>Location</Text>
+        <Card title="Location">
           <View style={s.mapBox}>
             <Text style={s.mapLine}>{home.address}</Text>
             <Text style={s.mapLine}>{home.city}, {home.state} {home.zipcode}</Text>
             <TouchableOpacity
-              style={[s.btn, s.webBtn, { marginTop: 14, alignSelf: 'center' }]}
+              style={[s.contactBtn, s.webBtn, { marginTop: 14 }]}
               onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}
             >
               <Text style={s.webTxt}>Open in Google Maps</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </Card>
+
+        {/* Overall Rating */}
+        {home.rating && (
+          <View style={s.overallRating}>
+            <Text style={s.overallLabel}>Overall Rating</Text>
+            <View style={s.overallStars}>
+              {[1,2,3,4,5].map((i) => (
+                <Text key={i} style={[s.starLg, i <= Math.round(parseFloat(home.rating)) && s.starLgFilled]}>★</Text>
+              ))}
+              <Text style={s.overallNum}>{parseFloat(home.rating)}/5</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Ratings Breakdown */}
+        <Card title="Ratings Breakdown">
+          <Stars label="Health Inspection"  rating={home.health_inspection_rating} />
+          <Stars label="Staffing"           rating={home.staffing_rating} />
+          <Stars label="Quality Measures"   rating={home.qm_rating} />
+          <Stars label="Long-Stay Quality"  rating={home.longstay_qm_rating} />
+          <Stars label="Short-Stay Quality" rating={home.shortstay_qm_rating} />
+        </Card>
+
+        {/* Staffing */}
+        <Card title="Staffing">
+          <Text style={s.cardSub}>Hours per resident per day</Text>
+          <Row label="Total Nurse Hours"        value={hrs(home.total_nurse_hours_per_resident)} />
+          <Row label="RN Hours"                 value={hrs(home.rn_hours_per_resident)} />
+          <Row label="LPN Hours"                value={hrs(home.lpn_hours_per_resident)} />
+          <Row label="Nurse Aide Hours"         value={hrs(home.nurse_aide_hours_per_resident)} />
+          <Row label="Weekend RN Hours"         value={hrs(home.weekend_nurse_hours_per_resident)} />
+          <View style={s.divider} />
+          <Row label="Nursing Turnover" value={pct(home.total_nursing_staff_turnover)} highlight={parseFloat(home.total_nursing_staff_turnover) > 50} />
+          <Row label="RN Turnover"      value={pct(home.rn_turnover)} highlight={parseFloat(home.rn_turnover) > 50} />
+        </Card>
+
+        {/* Inspections & Penalties */}
+        <Card title="Inspections & Penalties">
+          <Row label="Last Inspection"     value={home.last_inspection_date ? new Date(home.last_inspection_date).toLocaleDateString() : null} />
+          <Row label="Health Deficiencies" value={home.health_deficiencies != null ? String(home.health_deficiencies) : null} highlight={home.health_deficiencies > 5} />
+          <Row label="Total Fines"         value={home.total_fines === 0 ? 'None' : home.total_fines > 0 ? String(home.total_fines) : null} />
+          <Row label="Fines Amount"        value={home.total_fines_amount > 0 ? `$${parseFloat(home.total_fines_amount).toLocaleString()}` : null} />
+          <Row label="Total Penalties"     value={home.total_penalties === 0 ? 'None' : home.total_penalties > 0 ? String(home.total_penalties) : null} highlight={home.total_penalties > 0} />
+          {hasSpecialFocus ? <Row label="Special Focus" value={home.special_focus_status} highlight /> : null}
+        </Card>
 
       </ScrollView>
     </SafeAreaView>
@@ -182,43 +212,49 @@ const s = StyleSheet.create({
   backBtn: { backgroundColor: '#2e7d5e', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, marginTop: 12 },
   backBtnText: { color: '#fff', fontWeight: '700' },
 
-  header: { backgroundColor: '#2e7d5e', padding: 24, paddingBottom: 36 },
-  back: { color: 'rgba(255,255,255,0.85)', fontSize: 15, fontWeight: '600', marginBottom: 16 },
-  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 12 },
-  badge: { backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
-  badgeBlue: { backgroundColor: 'rgba(59,130,246,0.4)', borderColor: 'rgba(147,197,253,0.6)' },
-  badgeRed:  { backgroundColor: 'rgba(220,38,38,0.5)',  borderColor: 'rgba(252,165,165,0.6)' },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700', letterSpacing: 0.4 },
-  name: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 6 },
-  addr: { fontSize: 13, color: 'rgba(255,255,255,0.8)', marginBottom: 12 },
+  photo: { width: '100%', height: 220, backgroundColor: '#2e7d5e', alignItems: 'center', justifyContent: 'center', gap: 10 },
+  photoCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
+  photoInitials: { fontSize: 26, fontWeight: '800', color: '#fff' },
+  photoLabel: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
 
-  starRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  starLabel: { fontSize: 13, color: '#374151', fontWeight: '500', flex: 1 },
-  starsWrap: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  star: { fontSize: 16, color: '#d1d5db' },
-  starFilled: { color: '#fbbf24' },
-  starNum: { fontSize: 12, color: '#6b7280', marginLeft: 4, fontWeight: '600' },
+  identity: { padding: 20, paddingBottom: 4 },
+  back: { color: '#2e7d5e', fontSize: 14, fontWeight: '600', marginBottom: 14 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
+  badge: { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#6ee7b7', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  badgeBlue: { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' },
+  badgeRed:  { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  badgeText: { color: '#065f46', fontSize: 10, fontWeight: '700', letterSpacing: 0.4 },
+  name: { fontSize: 22, fontWeight: '800', color: '#111827' },
 
-  // override star colours in header
-  header_starLabel: { color: 'rgba(255,255,255,0.85)' },
-
-  card: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 16, borderRadius: 12, padding: 20, borderWidth: 1, borderColor: '#e5e7eb', elevation: 2 },
+  card: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 14, borderRadius: 12, padding: 18, borderWidth: 1, borderColor: '#e5e7eb', elevation: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-  cardSub: { fontSize: 12, fontWeight: '400', color: '#9ca3af' },
+  cardSub: { fontSize: 12, color: '#9ca3af', marginBottom: 8, marginTop: -4 },
+  aboutText: { fontSize: 14, color: '#374151', lineHeight: 20, marginBottom: 12 },
 
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: '#f9fafb', gap: 8 },
   rowLabel: { fontSize: 13, color: '#6b7280', flex: 1 },
   rowValue: { fontSize: 13, color: '#111827', fontWeight: '500', textAlign: 'right', flex: 1 },
   rowHighlight: { color: '#dc2626', fontWeight: '700' },
-  divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 6 },
+  link: { color: '#2e7d5e' },
+  divider: { height: 1, backgroundColor: '#f3f4f6', marginVertical: 4 },
 
-  btn: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 10, marginBottom: 10 },
-  phoneBtn: { backgroundColor: '#ecfdf5', borderWidth: 1, borderColor: '#6ee7b7' },
-  phoneTxt: { color: '#065f46', fontWeight: '600', fontSize: 14 },
-  webBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
-  webTxt: { color: '#1d4ed8', fontWeight: '600', fontSize: 14 },
-  noContact: { fontSize: 13, color: '#9ca3af' },
+  starRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f9fafb' },
+  starLabel: { fontSize: 13, color: '#6b7280', flex: 1 },
+  starsWrap: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  star: { fontSize: 15, color: '#d1d5db' },
+  starFilled: { color: '#fbbf24' },
+  starNum: { fontSize: 12, color: '#6b7280', marginLeft: 4, fontWeight: '600' },
+
+  overallRating: { backgroundColor: '#fff', marginHorizontal: 16, marginTop: 14, borderRadius: 12, padding: 18, borderWidth: 1, borderColor: '#e5e7eb', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 1 },
+  overallLabel: { fontSize: 15, fontWeight: '700', color: '#111827' },
+  overallStars: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  starLg: { fontSize: 22, color: '#d1d5db' },
+  starLgFilled: { color: '#fbbf24' },
+  overallNum: { fontSize: 14, color: '#6b7280', marginLeft: 6, fontWeight: '700' },
 
   mapBox: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, alignItems: 'center' },
   mapLine: { fontSize: 13, color: '#374151', marginBottom: 2 },
+  contactBtn: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
+  webBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
+  webTxt: { color: '#1d4ed8', fontWeight: '600', fontSize: 14 },
 });
