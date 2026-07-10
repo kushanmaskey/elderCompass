@@ -3,17 +3,36 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getHomeById } from '../api/homes';
 import './HomeDetail.css';
 
-function PhotoPlaceholder({ name }) {
-  const initials = name
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase();
+const SLIDES = [
+  { icon: '🏡', label: 'Building Exterior', bg: 'linear-gradient(135deg, #2e7d5e 0%, #1a5c45 100%)' },
+  { icon: '🛋️', label: 'Common Areas',      bg: 'linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)' },
+  { icon: '🛏️', label: 'Private Rooms',     bg: 'linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%)' },
+];
+
+function ImageCarousel() {
+  const [current, setCurrent] = useState(0);
   return (
-    <div className="photo-placeholder">
-      <div className="photo-initials">{initials}</div>
-      <div className="photo-label">Photo coming soon</div>
+    <div className="carousel">
+      <div className="carousel-track" style={{ transform: `translateX(-${current * 100}%)` }}>
+        {SLIDES.map((slide, i) => (
+          <div key={i} className="carousel-slide" style={{ background: slide.bg }}>
+            <div className="carousel-icon">{slide.icon}</div>
+            <div className="carousel-slide-label">{slide.label}</div>
+            <div className="carousel-coming-soon">Photos Coming Soon</div>
+          </div>
+        ))}
+      </div>
+      {current > 0 && (
+        <button className="carousel-btn carousel-prev" onClick={() => setCurrent((c) => c - 1)}>‹</button>
+      )}
+      {current < SLIDES.length - 1 && (
+        <button className="carousel-btn carousel-next" onClick={() => setCurrent((c) => c + 1)}>›</button>
+      )}
+      <div className="carousel-dots">
+        {SLIDES.map((_, i) => (
+          <button key={i} className={`carousel-dot${i === current ? ' active' : ''}`} onClick={() => setCurrent(i)} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -86,8 +105,8 @@ export default function HomeDetail() {
   return (
     <div className="detail-page">
 
-      {/* ── Photo ── */}
-      <PhotoPlaceholder name={home.name} />
+      {/* ── Photo carousel ── */}
+      <ImageCarousel />
 
       {/* ── Name & badges ── */}
       <div className="detail-identity">

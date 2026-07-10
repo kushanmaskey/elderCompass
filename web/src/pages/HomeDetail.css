@@ -34,34 +34,80 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Photo ── */
-.photo-placeholder {
+/* ── Image Carousel ── */
+.carousel {
+  position: relative;
   width: 100%;
   height: 260px;
-  background: linear-gradient(135deg, #2e7d5e 0%, #1a5c45 100%);
+  overflow: hidden;
+}
+.carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease;
+}
+.carousel-slide {
+  min-width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
-.photo-initials {
-  width: 80px;
-  height: 80px;
-  background: rgba(255,255,255,0.2);
-  border: 2px solid rgba(255,255,255,0.4);
+.carousel-icon { font-size: 52px; }
+.carousel-slide-label {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.carousel-coming-soon {
+  font-size: 12px;
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
+  border: none;
   border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  font-weight: 800;
-  color: #fff;
+  transition: background 0.2s;
 }
-.photo-label {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
+.carousel-btn:hover { background: rgba(0,0,0,0.55); }
+.carousel-prev { left: 12px; }
+.carousel-next { right: 12px; }
+.carousel-dots {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
 }
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.45);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+}
+.carousel-dot.active { background: #fff; }
 
 /* ── Identity ── */
 .detail-identity {
