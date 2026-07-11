@@ -113,7 +113,7 @@
 
 /* ── Identity ── */
 .detail-identity {
-  max-width: 720px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px 24px 4px;
 }
@@ -154,14 +154,35 @@
   line-height: 1.2;
 }
 
-/* ── Body ── */
-.detail-body {
-  max-width: 720px;
+/* ── Two-column layout ── */
+.detail-layout {
+  max-width: 1200px;
   margin: 0 auto;
   padding: 16px 24px 0;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 20px;
+  align-items: start;
+}
+.detail-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+}
+.detail-map-col { min-width: 0; }
+.detail-map-sticky {
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 40px);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+@media (max-width: 860px) {
+  .detail-layout { grid-template-columns: 1fr; }
+  .detail-map-sticky { position: static; height: 300px; }
 }
 
 /* ── Card ── */

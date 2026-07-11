@@ -144,80 +144,97 @@ export default function HomeDetail() {
         <h1 className="detail-name">{home.name}</h1>
       </div>
 
-      <div className="detail-body">
+      <div className="detail-layout">
 
-        {/* ── About ── */}
-        <Card title="About">
-          {home.description && <p className="about-text">{home.description}</p>}
-          <Row label="Address" value={
-            <a href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`} target="_blank" rel="noopener noreferrer" className="inline-link">
-              {home.address}, {home.city}, {home.state} {home.zipcode}
-            </a>
-          } />
-          <Row label="Phone"    value={home.phone ? <a href={`tel:${home.phone}`} className="inline-link">{home.phone}</a> : null} />
-          <Row label="Email"    value={home.email || null} />
-          <Row label="Fax"      value={home.fax || null} />
-          <Row label="Website"  value={home.website
-            ? <a href={home.website} target="_blank" rel="noopener noreferrer" className="inline-link">Visit Website</a>
-            : null}
-          />
-        </Card>
+        {/* ── Left: cards ── */}
+        <div className="detail-body">
 
-        {/* ── Facility Profile ── */}
-        <Card title="Facility Profile">
-          <Row label="Ownership"              value={home.ownership_type} />
-          <Row label="Certified Beds"         value={home.capacity} />
-          <Row label="Avg Daily Residents"    value={home.avg_daily_residents ? Math.round(home.avg_daily_residents) : null} />
-          <Row label="CMS Certification #"    value={home.cms_ccn} />
-          <Row label="Certified Since"        value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
-          <Row label="Resident/Family Council" value={home.resident_family_council} />
-          <Row label="Continuing Care (CCRC)" value={home.is_ccrc ? 'Yes' : null} />
-        </Card>
+          {/* ── About ── */}
+          <Card title="About">
+            {home.description && <p className="about-text">{home.description}</p>}
+            <Row label="Address" value={
+              <a href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`} target="_blank" rel="noopener noreferrer" className="inline-link">
+                {home.address}, {home.city}, {home.state} {home.zipcode}
+              </a>
+            } />
+            <Row label="Phone"   value={home.phone ? <a href={`tel:${home.phone}`} className="inline-link">{home.phone}</a> : null} />
+            <Row label="Email"   value={home.email || null} />
+            <Row label="Fax"     value={home.fax || null} />
+            <Row label="Website" value={home.website ? <a href={home.website} target="_blank" rel="noopener noreferrer" className="inline-link">Visit Website</a> : null} />
+          </Card>
 
-        {/* ── Overall Rating ── */}
-        {home.rating && (
-          <div className="rating-overall">
-            <span className="rating-overall-label">Overall Rating</span>
-            <div className="rating-overall-stars">
-              {[1,2,3,4,5].map((i) => (
-                <span key={i} className={i <= Math.round(parseFloat(home.rating)) ? 'star-lg filled' : 'star-lg'}>★</span>
-              ))}
-              <span className="rating-overall-num">{parseFloat(home.rating)}/5</span>
+          {/* ── Facility Profile ── */}
+          <Card title="Facility Profile">
+            <Row label="Ownership"               value={home.ownership_type} />
+            <Row label="Certified Beds"          value={home.capacity} />
+            <Row label="Avg Daily Residents"     value={home.avg_daily_residents ? Math.round(home.avg_daily_residents) : null} />
+            <Row label="CMS Certification #"     value={home.cms_ccn} />
+            <Row label="Certified Since"         value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
+            <Row label="Resident/Family Council" value={home.resident_family_council} />
+            <Row label="Continuing Care (CCRC)"  value={home.is_ccrc ? 'Yes' : null} />
+          </Card>
+
+          {/* ── Overall Rating ── */}
+          {home.rating && (
+            <div className="rating-overall">
+              <span className="rating-overall-label">Overall Rating</span>
+              <div className="rating-overall-stars">
+                {[1,2,3,4,5].map((i) => (
+                  <span key={i} className={i <= Math.round(parseFloat(home.rating)) ? 'star-lg filled' : 'star-lg'}>★</span>
+                ))}
+                <span className="rating-overall-num">{parseFloat(home.rating)}/5</span>
+              </div>
             </div>
+          )}
+
+          {/* ── Ratings Breakdown ── */}
+          <Card title="Ratings Breakdown">
+            <Stars rating={home.health_inspection_rating} label="Health Inspection" />
+            <Stars rating={home.staffing_rating}          label="Staffing" />
+            <Stars rating={home.qm_rating}                label="Quality Measures" />
+            <Stars rating={home.longstay_qm_rating}       label="Long-Stay Quality" />
+            <Stars rating={home.shortstay_qm_rating}      label="Short-Stay Quality" />
+          </Card>
+
+          {/* ── Staffing ── */}
+          <Card title="Staffing">
+            <p className="card-subtitle">Hours per resident per day</p>
+            <Row label="Total Nurse Hours"        value={hrs(home.total_nurse_hours_per_resident)} />
+            <Row label="Registered Nurse (RN)"    value={hrs(home.rn_hours_per_resident)} />
+            <Row label="Licensed Practical (LPN)" value={hrs(home.lpn_hours_per_resident)} />
+            <Row label="Nurse Aide"               value={hrs(home.nurse_aide_hours_per_resident)} />
+            <Row label="Weekend RN Hours"         value={hrs(home.weekend_nurse_hours_per_resident)} />
+            <div className="divider" />
+            <Row label="Nursing Turnover" value={pct(home.total_nursing_staff_turnover)} highlight={home.total_nursing_staff_turnover > 50} />
+            <Row label="RN Turnover"      value={pct(home.rn_turnover)} highlight={home.rn_turnover > 50} />
+          </Card>
+
+          {/* ── Inspections & Penalties ── */}
+          <Card title="Inspections & Penalties">
+            <Row label="Last Inspection"     value={home.last_inspection_date ? new Date(home.last_inspection_date).toLocaleDateString() : null} />
+            <Row label="Health Deficiencies" value={home.health_deficiencies != null ? String(home.health_deficiencies) : null} highlight={home.health_deficiencies > 5} />
+            <Row label="Total Fines"         value={home.total_fines === 0 ? 'None' : home.total_fines > 0 ? `${home.total_fines}` : null} />
+            <Row label="Fines Amount"        value={home.total_fines_amount > 0 ? `$${parseFloat(home.total_fines_amount).toLocaleString()}` : null} />
+            <Row label="Total Penalties"     value={home.total_penalties === 0 ? 'None' : home.total_penalties > 0 ? String(home.total_penalties) : null} highlight={home.total_penalties > 0} />
+            {hasSpecialFocus && <Row label="Special Focus" value={home.special_focus_status} highlight />}
+          </Card>
+
+        </div>
+
+        {/* ── Right: sticky map ── */}
+        <div className="detail-map-col">
+          <div className="detail-map-sticky">
+            <iframe
+              title="Property location"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}&output=embed`}
+              width="100%"
+              height="100%"
+              style={{ border: 0, borderRadius: 12 }}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
           </div>
-        )}
-
-        {/* ── Ratings Breakdown ── */}
-        <Card title="Ratings Breakdown">
-          <Stars rating={home.health_inspection_rating} label="Health Inspection" />
-          <Stars rating={home.staffing_rating}          label="Staffing" />
-          <Stars rating={home.qm_rating}                label="Quality Measures" />
-          <Stars rating={home.longstay_qm_rating}       label="Long-Stay Quality" />
-          <Stars rating={home.shortstay_qm_rating}      label="Short-Stay Quality" />
-        </Card>
-
-        {/* ── Staffing ── */}
-        <Card title="Staffing">
-          <p className="card-subtitle">Hours per resident per day</p>
-          <Row label="Total Nurse Hours"        value={hrs(home.total_nurse_hours_per_resident)} />
-          <Row label="Registered Nurse (RN)"    value={hrs(home.rn_hours_per_resident)} />
-          <Row label="Licensed Practical (LPN)" value={hrs(home.lpn_hours_per_resident)} />
-          <Row label="Nurse Aide"               value={hrs(home.nurse_aide_hours_per_resident)} />
-          <Row label="Weekend RN Hours"         value={hrs(home.weekend_nurse_hours_per_resident)} />
-          <div className="divider" />
-          <Row label="Nursing Turnover" value={pct(home.total_nursing_staff_turnover)} highlight={home.total_nursing_staff_turnover > 50} />
-          <Row label="RN Turnover"      value={pct(home.rn_turnover)} highlight={home.rn_turnover > 50} />
-        </Card>
-
-        {/* ── Inspections & Penalties ── */}
-        <Card title="Inspections & Penalties">
-          <Row label="Last Inspection"     value={home.last_inspection_date ? new Date(home.last_inspection_date).toLocaleDateString() : null} />
-          <Row label="Health Deficiencies" value={home.health_deficiencies != null ? String(home.health_deficiencies) : null} highlight={home.health_deficiencies > 5} />
-          <Row label="Total Fines"         value={home.total_fines === 0 ? 'None' : home.total_fines > 0 ? `${home.total_fines}` : null} />
-          <Row label="Fines Amount"        value={home.total_fines_amount > 0 ? `$${parseFloat(home.total_fines_amount).toLocaleString()}` : null} />
-          <Row label="Total Penalties"     value={home.total_penalties === 0 ? 'None' : home.total_penalties > 0 ? String(home.total_penalties) : null} highlight={home.total_penalties > 0} />
-          {hasSpecialFocus && <Row label="Special Focus" value={home.special_focus_status} highlight />}
-        </Card>
+        </div>
 
       </div>
     </div>
