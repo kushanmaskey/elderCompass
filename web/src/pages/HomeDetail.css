@@ -164,10 +164,10 @@
   gap: 20px;
 }
 
-/* ── Top row: info left + map right ── */
+/* ── Top row: 3 panes ── */
 .detail-top {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.1fr 1fr 0.9fr;
   gap: 20px;
   align-items: stretch;
 }
@@ -186,6 +186,71 @@
 }
 .detail-top-map iframe { display: block; }
 
+/* ── Nearby pane ── */
+.nearby-pane {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+.nearby-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.nearby-cats {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  gap: 4px;
+}
+.nearby-cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.nearby-cat:hover { background: #f3f4f6; }
+.nearby-cat.active { background: #ecfdf5; color: #065f46; font-weight: 600; }
+.nearby-status {
+  font-size: 12px;
+  color: #9ca3af;
+  padding: 8px 18px 12px;
+}
+.nearby-list {
+  flex: 1;
+  overflow-y: auto;
+  border-top: 1px solid #f3f4f6;
+  max-height: 320px;
+}
+.nearby-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 18px;
+  border-bottom: 1px solid #f9fafb;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.nearby-item:last-child { border-bottom: none; }
+.nearby-item:hover { background: #f9fafb; }
+.nearby-item-name { font-size: 13px; color: #111827; font-weight: 500; }
+.nearby-item-meta { display: flex; justify-content: space-between; font-size: 11px; color: #9ca3af; }
+
 /* ── Bottom row: 3-pane ratings ── */
 .detail-ratings {
   display: grid;
@@ -199,7 +264,10 @@
   gap: 16px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
+  .detail-top { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
   .detail-top { grid-template-columns: 1fr; }
   .detail-top-map { height: 280px; }
   .detail-ratings { grid-template-columns: 1fr; }

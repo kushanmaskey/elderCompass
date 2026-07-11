@@ -100,6 +100,94 @@ function Card({ title, children }) {
 function hrs(v) { return v != null ? `${parseFloat(v).toFixed(2)} hrs/resident/day` : null; }
 function pct(v) { return v != null ? `${parseFloat(v).toFixed(1)}%` : null; }
 
+function distanceMi(lat1, lon1, lat2, lon2) {
+  const R = 3959;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
+}
+
+const NEARBY_CATS = [
+  { label: 'Hospitals',    icon: '🏥', tag: 'amenity=hospital' },
+  { label: 'Pharmacies',   icon: '💊', tag: 'amenity=pharmacy' },
+  { label: 'Police',       icon: '👮', tag: 'amenity=police' },
+  { label: 'Fire Station', icon: '🚒', tag: 'amenity=fire_station' },
+  { label: 'Parks',        icon: '🌳', tag: 'leisure=park' },
+  { label: 'Restaurants',  icon: '🍽️', tag: 'amenity=restaurant' },
+  { label: 'Gym',          icon: '💪', tag: 'leisure=fitness_centre' },
+];
+
+function NearbyPane({ lat, lon }) {
+  const [active, setActive] = useState(null);
+  const [places, setPlaces] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+
+  async function fetchCategory(cat) {
+    if (!lat || !lon) return;
+    setActive(cat.label);
+    setLoading(true);
+    setPlaces([]);
+    setError(false);
+    const [k, v] = cat.tag.split('=');
+    const q = `[out:json];node(around:3000,${lat},${lon})[${k}=${v}];out 15;`;
+    try {
+      const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q });
+      const data = await res.json();
+      setPlaces(data.elements || []);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="nearby-pane">
+      <div className="nearby-title">Nearby</div>
+      <div className="nearby-cats">
+        {NEARBY_CATS.map((cat) => (
+          <button
+            key={cat.label}
+            className={`nearby-cat${active === cat.label ? ' active' : ''}`}
+            onClick={() => fetchCategory(cat)}
+          >
+            <span>{cat.icon}</span> {cat.label}
+          </button>
+        ))}
+      </div>
+      {loading && <div className="nearby-status">Loading…</div>}
+      {error && <div className="nearby-status">Could not load results.</div>}
+      {!loading && !error && active && places.length === 0 && (
+        <div className="nearby-status">None found within 2 miles.</div>
+      )}
+      {!loading && places.length > 0 && (
+        <div className="nearby-list">
+          {places.map((p) => {
+            const name = p.tags?.name || 'Unnamed';
+            const street = [p.tags?.['addr:housenumber'], p.tags?.['addr:street']].filter(Boolean).join(' ');
+            const dist = distanceMi(lat, lon, p.lat, p.lon);
+            return (
+              <a
+                key={p.id}
+                className="nearby-item"
+                href={`https://maps.google.com/?q=${encodeURIComponent(name + (street ? ', ' + street : ''))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <span className="nearby-item-name">{name}</span>
+                <span className="nearby-item-meta">{street && <span>{street}</span>}<span>{dist} mi</span></span>
+              </a>
+            );
+          })}
+        </div>
+      )}
+      {!lat && <div className="nearby-status">Location data unavailable.</div>}
+    </div>
+  );
+}
+
 export default function HomeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -146,7 +234,7 @@ export default function HomeDetail() {
 
       <div className="detail-page-body">
 
-        {/* ── Top: info left + map right ── */}
+        {/* ── Top: 3 panes ── */}
         <div className="detail-top">
           <div className="detail-top-left">
             <Card title="About">
@@ -182,6 +270,7 @@ export default function HomeDetail() {
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
+          <NearbyPane lat={home.latitude} lon={home.longitude} />
         </div>
 
         {/* ── Bottom: 3-pane ratings ── */}
