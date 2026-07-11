@@ -154,35 +154,55 @@
   line-height: 1.2;
 }
 
-/* ── Two-column layout ── */
-.detail-layout {
+/* ── Page body wrapper ── */
+.detail-page-body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 16px 24px 0;
-  display: grid;
-  grid-template-columns: 1fr 420px;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
-  align-items: start;
 }
-.detail-body {
+
+/* ── Top row: info left + map right ── */
+.detail-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+.detail-top-left {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
 }
-.detail-map-col { min-width: 0; }
-.detail-map-sticky {
-  position: sticky;
-  top: 20px;
-  height: calc(100vh - 40px);
+.detail-top-map {
+  min-width: 0;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-@media (max-width: 860px) {
-  .detail-layout { grid-template-columns: 1fr; }
-  .detail-map-sticky { position: static; height: 300px; }
+.detail-top-map iframe { display: block; }
+
+/* ── Bottom row: 3-pane ratings ── */
+.detail-ratings {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+.detail-ratings-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 900px) {
+  .detail-top { grid-template-columns: 1fr; }
+  .detail-top-map { height: 280px; }
+  .detail-ratings { grid-template-columns: 1fr; }
 }
 
 /* ── Card ── */
