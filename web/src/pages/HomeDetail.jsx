@@ -149,7 +149,11 @@ export default function HomeDetail() {
         {/* ── About ── */}
         <Card title="About">
           {home.description && <p className="about-text">{home.description}</p>}
-          <Row label="Address"  value={`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`} />
+          <Row label="Address" value={
+            <a href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`} target="_blank" rel="noopener noreferrer" className="inline-link">
+              {home.address}, {home.city}, {home.state} {home.zipcode}
+            </a>
+          } />
           <Row label="Phone"    value={home.phone ? <a href={`tel:${home.phone}`} className="inline-link">{home.phone}</a> : null} />
           <Row label="Email"    value={home.email || null} />
           <Row label="Fax"      value={home.fax || null} />
@@ -168,25 +172,6 @@ export default function HomeDetail() {
           <Row label="Certified Since"        value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
           <Row label="Resident/Family Council" value={home.resident_family_council} />
           <Row label="Continuing Care (CCRC)" value={home.is_ccrc ? 'Yes' : null} />
-        </Card>
-
-        {/* ── Address ── */}
-        <Card title="Address">
-          <Row label="Street"  value={home.address} />
-          <Row label="City"    value={home.city} />
-          <Row label="State"   value={home.state} />
-          <Row label="ZIP"     value={home.zipcode} />
-          <div className="detail-row">
-            <span className="detail-label">Google Maps</span>
-            <a
-              href={`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`}
-              target="_blank" rel="noopener noreferrer"
-              className="maps-link"
-              style={{ margin: 0 }}
-            >
-              Open in Google Maps ↗
-            </a>
-          </div>
         </Card>
 
         {/* ── Overall Rating ── */}

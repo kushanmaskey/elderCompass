@@ -178,7 +178,10 @@ export default function HomeDetailScreen({ route, navigation }) {
         {/* About */}
         <Card title="About">
           {home.description ? <Text style={s.aboutText}>{home.description}</Text> : null}
-          <Row label="Address" value={`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`} />
+          <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)} style={s.row}>
+            <Text style={s.rowLabel}>Address</Text>
+            <Text style={[s.rowValue, s.link]}>{home.address}, {home.city}, {home.state} {home.zipcode}</Text>
+          </TouchableOpacity>
           {home.phone ? (
             <TouchableOpacity onPress={() => Linking.openURL(`tel:${home.phone}`)} style={s.row}>
               <Text style={s.rowLabel}>Phone</Text>
@@ -204,20 +207,6 @@ export default function HomeDetailScreen({ route, navigation }) {
           <Row label="Certified Since"         value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
           <Row label="Resident/Family Council" value={home.resident_family_council} />
           <Row label="Continuing Care (CCRC)"  value={home.is_ccrc ? 'Yes' : null} />
-        </Card>
-
-        {/* Address */}
-        <Card title="Address">
-          <Row label="Street" value={home.address} />
-          <Row label="City"   value={home.city} />
-          <Row label="State"  value={home.state} />
-          <Row label="ZIP"    value={home.zipcode} />
-          <View style={s.row}>
-            <Text style={s.rowLabel}>Google Maps</Text>
-            <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}>
-              <Text style={s.mapsLink}>Open in Google Maps ↗</Text>
-            </TouchableOpacity>
-          </View>
         </Card>
 
         {/* Overall Rating */}
