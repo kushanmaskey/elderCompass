@@ -202,8 +202,8 @@
   gap: 16px;
 }
 .detail-row:last-child { border-bottom: none; }
-.detail-label { font-size: 13px; color: #6b7280; flex: 1; }
-.detail-value { font-size: 14px; color: #111827; font-weight: 500; text-align: right; }
+.detail-label { font-size: 13px; color: #6b7280; flex: 1; text-align: left; }
+.detail-value { font-size: 13px; color: #111827; font-weight: 500; flex: 1; text-align: right; }
 .detail-row-highlight .detail-value { color: #dc2626; font-weight: 700; }
 .inline-link { color: #2e7d5e; text-decoration: none; font-weight: 600; }
 .inline-link:hover { text-decoration: underline; }
