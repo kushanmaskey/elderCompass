@@ -100,55 +100,19 @@ function Card({ title, children }) {
 function hrs(v) { return v != null ? `${parseFloat(v).toFixed(2)} hrs/resident/day` : null; }
 function pct(v) { return v != null ? `${parseFloat(v).toFixed(1)}%` : null; }
 
-function distanceMi(lat1, lon1, lat2, lon2) {
-  const R = 3959;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
-}
 
 const NEARBY_CATS = [
-  { label: 'Hospitals',    icon: '🏥', tag: 'amenity=hospital' },
-  { label: 'Pharmacies',   icon: '💊', tag: 'amenity=pharmacy' },
-  { label: 'Police',       icon: '👮', tag: 'amenity=police' },
-  { label: 'Fire Station', icon: '🚒', tag: 'amenity=fire_station' },
-  { label: 'Parks',        icon: '🌳', tag: 'leisure=park' },
-  { label: 'Restaurants',  icon: '🍽️', tag: 'amenity=restaurant' },
-  { label: 'Gym',          icon: '💪', tag: 'leisure=fitness_centre' },
+  { label: 'Hospitals',    icon: '🏥', slug: 'hospitals' },
+  { label: 'Pharmacies',   icon: '💊', slug: 'pharmacies' },
+  { label: 'Police',       icon: '👮', slug: 'police' },
+  { label: 'Fire Station', icon: '🚒', slug: 'fire-station' },
+  { label: 'Parks',        icon: '🌳', slug: 'parks' },
+  { label: 'Restaurants',  icon: '🍽️', slug: 'restaurants' },
+  { label: 'Gym',          icon: '💪', slug: 'gym' },
 ];
 
-function NearbyPane({ lat, lon }) {
-  const [active, setActive] = useState(null);
-  const [places, setPlaces] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-
-  async function fetchCategory(cat) {
-    if (!lat || !lon) return;
-    setActive(cat.label);
-    setLoading(true);
-    setPlaces([]);
-    setError(false);
-    const [k, v] = cat.tag.split('=');
-    const RADIUS = 40234; // 25 miles in metres
-    const q = `[out:json];(node(around:${RADIUS},${lat},${lon})[${k}=${v}];way(around:${RADIUS},${lat},${lon})[${k}=${v}];);out center 200;`;
-    try {
-      const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q });
-      const data = await res.json();
-      const elements = (data.elements || [])
-        .filter((e) => e.tags?.name)
-        .map((e) => ({ ...e, _lat: e.lat ?? e.center?.lat, _lon: e.lon ?? e.center?.lon }))
-        .filter((e) => e._lat && e._lon)
-        .sort((a, b) => distanceMi(lat, lon, a._lat, a._lon) - distanceMi(lat, lon, b._lat, b._lon));
-      setPlaces(elements);
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+function NearbyPane({ homeId }) {
+  const navigate = useNavigate();
   return (
     <div className="nearby-pane">
       <div className="nearby-title">Nearby</div>
@@ -156,45 +120,14 @@ function NearbyPane({ lat, lon }) {
         {NEARBY_CATS.map((cat) => (
           <button
             key={cat.label}
-            className={`nearby-cat${active === cat.label ? ' active' : ''}`}
-            onClick={() => fetchCategory(cat)}
+            className="nearby-cat"
+            onClick={() => navigate(`/home/${homeId}/nearby/${cat.slug}`)}
           >
             <span>{cat.icon}</span> {cat.label}
+            <span className="nearby-cat-arrow">›</span>
           </button>
         ))}
       </div>
-      {loading && <div className="nearby-status">Loading…</div>}
-      {error && <div className="nearby-status">Could not load results.</div>}
-      {!loading && !error && active && places.length === 0 && (
-        <div className="nearby-status">None found within 25 miles.</div>
-      )}
-      {!loading && places.length > 0 && (
-        <div className="nearby-list">
-          <div className="nearby-count">{places.length} found within 25 miles</div>
-          {places.map((p) => {
-            const name = p.tags?.name;
-            const street = [p.tags?.['addr:housenumber'], p.tags?.['addr:street']].filter(Boolean).join(' ');
-            const city = p.tags?.['addr:city'] || '';
-            const dist = distanceMi(lat, lon, p._lat, p._lon);
-            return (
-              <a
-                key={p.id}
-                className="nearby-item"
-                href={`https://maps.google.com/?q=${encodeURIComponent(`${name}${street ? ', ' + street : ''}${city ? ', ' + city : ''}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <span className="nearby-item-name">{name}</span>
-                <span className="nearby-item-meta">
-                  {(street || city) && <span>{[street, city].filter(Boolean).join(', ')}</span>}
-                  <span>{dist} mi</span>
-                </span>
-              </a>
-            );
-          })}
-        </div>
-      )}
-      {!lat && <div className="nearby-status">Location data unavailable.</div>}
     </div>
   );
 }
@@ -281,7 +214,7 @@ export default function HomeDetail() {
               referrerPolicy="no-referrer-when-downgrade"
             />
           </div>
-          <NearbyPane lat={home.latitude} lon={home.longitude} />
+          <NearbyPane homeId={home.id} />
         </div>
 
         {/* ── Bottom: 3-pane ratings ── */}
