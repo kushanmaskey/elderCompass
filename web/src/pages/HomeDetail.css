@@ -235,7 +235,14 @@
   flex: 1;
   overflow-y: auto;
   border-top: 1px solid #f3f4f6;
-  max-height: 320px;
+  max-height: 480px;
+}
+.nearby-count {
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 6px 18px;
+  background: #f9fafb;
+  border-bottom: 1px solid #f3f4f6;
 }
 .nearby-item {
   display: flex;

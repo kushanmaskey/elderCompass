@@ -131,11 +131,17 @@ function NearbyPane({ lat, lon }) {
     setPlaces([]);
     setError(false);
     const [k, v] = cat.tag.split('=');
-    const q = `[out:json];node(around:3000,${lat},${lon})[${k}=${v}];out 15;`;
+    const RADIUS = 40234; // 25 miles in metres
+    const q = `[out:json];(node(around:${RADIUS},${lat},${lon})[${k}=${v}];way(around:${RADIUS},${lat},${lon})[${k}=${v}];);out center 200;`;
     try {
       const res = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q });
       const data = await res.json();
-      setPlaces(data.elements || []);
+      const elements = (data.elements || [])
+        .filter((e) => e.tags?.name)
+        .map((e) => ({ ...e, _lat: e.lat ?? e.center?.lat, _lon: e.lon ?? e.center?.lon }))
+        .filter((e) => e._lat && e._lon)
+        .sort((a, b) => distanceMi(lat, lon, a._lat, a._lon) - distanceMi(lat, lon, b._lat, b._lon));
+      setPlaces(elements);
     } catch {
       setError(true);
     } finally {
@@ -160,24 +166,29 @@ function NearbyPane({ lat, lon }) {
       {loading && <div className="nearby-status">Loading…</div>}
       {error && <div className="nearby-status">Could not load results.</div>}
       {!loading && !error && active && places.length === 0 && (
-        <div className="nearby-status">None found within 2 miles.</div>
+        <div className="nearby-status">None found within 25 miles.</div>
       )}
       {!loading && places.length > 0 && (
         <div className="nearby-list">
+          <div className="nearby-count">{places.length} found within 25 miles</div>
           {places.map((p) => {
-            const name = p.tags?.name || 'Unnamed';
+            const name = p.tags?.name;
             const street = [p.tags?.['addr:housenumber'], p.tags?.['addr:street']].filter(Boolean).join(' ');
-            const dist = distanceMi(lat, lon, p.lat, p.lon);
+            const city = p.tags?.['addr:city'] || '';
+            const dist = distanceMi(lat, lon, p._lat, p._lon);
             return (
               <a
                 key={p.id}
                 className="nearby-item"
-                href={`https://maps.google.com/?q=${encodeURIComponent(name + (street ? ', ' + street : ''))}`}
+                href={`https://maps.google.com/?q=${encodeURIComponent(`${name}${street ? ', ' + street : ''}${city ? ', ' + city : ''}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <span className="nearby-item-name">{name}</span>
-                <span className="nearby-item-meta">{street && <span>{street}</span>}<span>{dist} mi</span></span>
+                <span className="nearby-item-meta">
+                  {(street || city) && <span>{[street, city].filter(Boolean).join(', ')}</span>}
+                  <span>{dist} mi</span>
+                </span>
               </a>
             );
           })}
