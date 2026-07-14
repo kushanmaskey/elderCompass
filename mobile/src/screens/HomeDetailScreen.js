@@ -1,19 +1,86 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, Linking,
+  View, Text, ScrollView, TouchableOpacity, Modal,
+  StyleSheet, ActivityIndicator, Linking, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import axios from 'axios';
 
 const API_BASE = 'http://10.0.2.2:3001/api';
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
-function PhotoPlaceholder({ name }) {
-  const initials = name?.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+const SLIDES = [
+  { icon: '🏡', label: 'Building Exterior', colors: ['#2e7d5e', '#1a5c45'] },
+  { icon: '🛋️', label: 'Common Areas',      colors: ['#1d4ed8', '#1e3a8a'] },
+  { icon: '🛏️', label: 'Private Rooms',     colors: ['#7c3aed', '#4c1d95'] },
+];
+
+function ImageCarousel() {
+  const [current, setCurrent] = useState(0);
+  const [lightbox, setLightbox] = useState(null);
+  const scrollRef = useRef(null);
+
+  function goTo(idx) {
+    scrollRef.current?.scrollTo({ x: idx * SCREEN_WIDTH, animated: true });
+    setCurrent(idx);
+  }
+
   return (
-    <View style={s.photo}>
-      <View style={s.photoCircle}><Text style={s.photoInitials}>{initials}</Text></View>
-      <Text style={s.photoLabel}>Photo coming soon</Text>
+    <View style={s.carousel}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(e) =>
+          setCurrent(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
+        }
+      >
+        {SLIDES.map((slide, i) => (
+          <TouchableOpacity
+            key={i}
+            activeOpacity={0.9}
+            style={[s.slide, { backgroundColor: slide.colors[1], width: SCREEN_WIDTH }]}
+            onPress={() => setLightbox(slide)}
+          >
+            <Text style={s.slideIcon}>{slide.icon}</Text>
+            <Text style={s.slideLabel}>{slide.label}</Text>
+            <Text style={s.slideSubLabel}>Tap to expand</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {current > 0 && (
+        <TouchableOpacity style={[s.arrowBtn, s.arrowLeft]} onPress={() => goTo(current - 1)}>
+          <Text style={s.arrowTxt}>‹</Text>
+        </TouchableOpacity>
+      )}
+      {current < SLIDES.length - 1 && (
+        <TouchableOpacity style={[s.arrowBtn, s.arrowRight]} onPress={() => goTo(current + 1)}>
+          <Text style={s.arrowTxt}>›</Text>
+        </TouchableOpacity>
+      )}
+
+      <View style={s.dots}>
+        {SLIDES.map((_, i) => (
+          <View key={i} style={[s.dot, i === current && s.dotActive]} />
+        ))}
+      </View>
+
+      <Modal visible={!!lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(null)}>
+        <View style={s.lightboxOverlay}>
+          <TouchableOpacity style={s.lightboxClose} onPress={() => setLightbox(null)}>
+            <Text style={s.lightboxCloseTxt}>✕</Text>
+          </TouchableOpacity>
+          {lightbox && (
+            <View style={[s.lightboxSlide, { backgroundColor: lightbox.colors[1] }]}>
+              <Text style={s.lightboxIcon}>{lightbox.icon}</Text>
+              <Text style={s.lightboxLabel}>{lightbox.label}</Text>
+              <Text style={s.lightboxSub}>Photos Coming Soon</Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -92,8 +159,8 @@ export default function HomeDetailScreen({ route, navigation }) {
     <SafeAreaView style={s.safe}>
       <ScrollView contentContainerStyle={s.container}>
 
-        {/* Photo */}
-        <PhotoPlaceholder name={home.name} />
+        {/* Photo carousel */}
+        <ImageCarousel />
 
         {/* Identity */}
         <View style={s.identity}>
@@ -111,7 +178,10 @@ export default function HomeDetailScreen({ route, navigation }) {
         {/* About */}
         <Card title="About">
           {home.description ? <Text style={s.aboutText}>{home.description}</Text> : null}
-          <Row label="Address" value={`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`} />
+          <TouchableOpacity onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)} style={s.row}>
+            <Text style={s.rowLabel}>Address</Text>
+            <Text style={[s.rowValue, s.link]}>{home.address}, {home.city}, {home.state} {home.zipcode}</Text>
+          </TouchableOpacity>
           {home.phone ? (
             <TouchableOpacity onPress={() => Linking.openURL(`tel:${home.phone}`)} style={s.row}>
               <Text style={s.rowLabel}>Phone</Text>
@@ -137,20 +207,6 @@ export default function HomeDetailScreen({ route, navigation }) {
           <Row label="Certified Since"         value={home.date_established ? new Date(home.date_established).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : null} />
           <Row label="Resident/Family Council" value={home.resident_family_council} />
           <Row label="Continuing Care (CCRC)"  value={home.is_ccrc ? 'Yes' : null} />
-        </Card>
-
-        {/* Location */}
-        <Card title="Location">
-          <View style={s.mapBox}>
-            <Text style={s.mapLine}>{home.address}</Text>
-            <Text style={s.mapLine}>{home.city}, {home.state} {home.zipcode}</Text>
-            <TouchableOpacity
-              style={[s.contactBtn, s.webBtn, { marginTop: 14 }]}
-              onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(`${home.address}, ${home.city}, ${home.state} ${home.zipcode}`)}`)}
-            >
-              <Text style={s.webTxt}>Open in Google Maps</Text>
-            </TouchableOpacity>
-          </View>
         </Card>
 
         {/* Overall Rating */}
@@ -212,10 +268,25 @@ const s = StyleSheet.create({
   backBtn: { backgroundColor: '#2e7d5e', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, marginTop: 12 },
   backBtnText: { color: '#fff', fontWeight: '700' },
 
-  photo: { width: '100%', height: 220, backgroundColor: '#2e7d5e', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  photoCircle: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.2)', borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' },
-  photoInitials: { fontSize: 26, fontWeight: '800', color: '#fff' },
-  photoLabel: { fontSize: 12, color: 'rgba(255,255,255,0.6)' },
+  carousel: { width: '100%', height: 220 },
+  slide: { height: 220, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  slideIcon: { fontSize: 48 },
+  slideLabel: { fontSize: 17, fontWeight: '800', color: '#fff' },
+  slideSubLabel: { fontSize: 11, color: 'rgba(255,255,255,0.65)', textTransform: 'uppercase', letterSpacing: 1 },
+  arrowBtn: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.4)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  arrowLeft: { left: 12 },
+  arrowRight: { right: 12 },
+  arrowTxt: { color: '#fff', fontSize: 28, fontWeight: '300', lineHeight: 32 },
+  dots: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.4)' },
+  dotActive: { backgroundColor: '#fff' },
+  lightboxOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.88)', alignItems: 'center', justifyContent: 'center' },
+  lightboxClose: { position: 'absolute', top: 50, right: 24, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
+  lightboxCloseTxt: { color: '#fff', fontSize: 18 },
+  lightboxSlide: { width: '88%', height: '60%', borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 16 },
+  lightboxIcon: { fontSize: 88 },
+  lightboxLabel: { fontSize: 26, fontWeight: '800', color: '#fff' },
+  lightboxSub: { fontSize: 13, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', letterSpacing: 1.5 },
 
   identity: { padding: 20, paddingBottom: 4 },
   back: { color: '#2e7d5e', fontSize: 14, fontWeight: '600', marginBottom: 14 },
@@ -254,7 +325,5 @@ const s = StyleSheet.create({
 
   mapBox: { backgroundColor: '#f9fafb', borderRadius: 8, padding: 16, alignItems: 'center' },
   mapLine: { fontSize: 13, color: '#374151', marginBottom: 2 },
-  contactBtn: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
-  webBtn: { backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe' },
-  webTxt: { color: '#1d4ed8', fontWeight: '600', fontSize: 14 },
+  mapsLink: { fontSize: 12, color: '#2e7d5e', marginTop: 8 },
 });
